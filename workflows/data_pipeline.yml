@@ -38,3 +38,10 @@ jobs:
         with:
           name: aquarius-export-csv
           path: data_source.csv
+- name: Download & Convert Workbook
+        env:
+          GCP_SERVICE_ACCOUNT_KEY: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+          DRIVE_FILE_ID: ${{ secrets.GOOGLE_DRIVE_FILE_ID }} # Stored in GitHub secrets or hardcoded string
+        run: |
+          python scripts/download_sheet.py
+          python scripts/converter.py data_source.xlsx
