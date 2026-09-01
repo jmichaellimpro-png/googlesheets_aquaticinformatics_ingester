@@ -1,0 +1,40 @@
+name: Monthly Aquarius Connect Pipeline
+
+on:
+  schedule:
+    # Runs at 00:00 UTC on the 1st of every month
+    - cron: '0 0 1 * *'
+  workflow_dispatch: # Allows manual run button in GitHub UI
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Download & Convert Workbook
+        env:
+          GCP_SERVICE_ACCOUNT_KEY: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+        run: |
+          # 1. Download source file from Google Drive / Cloud Storage
+          python scripts/download_sheet.py
+          
+          # 2. Process Excel into cleaned CSV
+          python scripts/converter.py data_source.xlsx
+
+      - name: Upload Cleaned CSV Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: aquarius-export-csv
+          path: data_source.csv
